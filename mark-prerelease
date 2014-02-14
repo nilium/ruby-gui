@@ -1,0 +1,22 @@
+#!/usr/bin/env ruby -w
+
+`./update-release-date`
+
+str = File.open('lib/gui/version.rb', 'r', &:read)
+
+VERSION_REGEX = /(GUI_VERSION\s*=\s*')(\d+.\d+.\d+)(?:.pre(\d+))?(')/
+
+new_version = ARGV.shift
+
+str.gsub!(VERSION_REGEX) { |match|
+  prefix = $1
+  version = new_version || $2
+  vn = 1
+  if $3 && version == $2
+    vn = $3.to_i + 1
+  end
+  suffix = $4
+  "#{prefix}#{version}.pre#{vn}#{suffix}"
+}
+
+File.open('lib/gui/version.rb', 'w') { |io| io.write(str) }

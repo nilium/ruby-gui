@@ -1,0 +1,7 @@
+*.bundle
+Makefile
+*.o
+.DS_Store
+*.gem
+test.rb
+.RUBYARCHDIR.time
