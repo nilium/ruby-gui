@@ -111,7 +111,7 @@ class Context
     bind do
       this_sequence = @sequence
       while @sequence >= this_sequence && !@windows.empty?
-        Glfw::wait_events
+        Glfw.wait_events
         block[*args, **kvargs] if block
 
         @windows.each(&:__swap_buffers__)

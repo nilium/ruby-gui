@@ -113,8 +113,8 @@ class Window < View
         @invalidated = nil
 
         if !region.empty?
-          Gl::glEnable(Gl::GL_SCISSOR_TEST)
-          Gl::glScissor(
+          Gl.glEnable(Gl::GL_SCISSOR_TEST)
+          Gl.glScissor(
             region.x * scale_factor,
             (@frame.height - region.bottom) * scale_factor,
             region.width * scale_factor,
@@ -123,8 +123,8 @@ class Window < View
 
           # draw_subviews (those within region)
 
-          Gl::glClear(Gl::GL_COLOR_BUFFER_BIT)
-          Gl::glDisable(Gl::GL_SCISSOR_TEST)
+          Gl.glClear(Gl::GL_COLOR_BUFFER_BIT)
+          Gl.glDisable(Gl::GL_SCISSOR_TEST)
         end
 
         loops -= 1

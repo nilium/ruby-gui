@@ -41,18 +41,18 @@ class Texture
     name = TextureName.new
     raise "Unable to allocate texture name" unless name
 
-    Gl::glGetIntegerv(Gl::GL_TEXTURE_BINDING_2D, name.address)
+    Gl.glGetIntegerv(Gl::GL_TEXTURE_BINDING_2D, name.address)
     prev_name = name.name
 
-    Gl::glGenTextures(1, name.address)
-    Gl::glBindTexture(Gl::GL_TEXTURE_2D, name.name)
+    Gl.glGenTextures(1, name.address)
+    Gl.glBindTexture(Gl::GL_TEXTURE_2D, name.name)
 
-    Gl::glTexParameteri(Gl::GL_TEXTURE_2D, Gl::GL_TEXTURE_WRAP_S, Gl::GL_CLAMP_TO_EDGE)
-    Gl::glTexParameteri(Gl::GL_TEXTURE_2D, Gl::GL_TEXTURE_WRAP_T, Gl::GL_CLAMP_TO_EDGE)
-    Gl::glTexParameteri(Gl::GL_TEXTURE_2D, Gl::GL_TEXTURE_MIN_FILTER, Gl::GL_LINEAR)
-    Gl::glTexParameteri(Gl::GL_TEXTURE_2D, Gl::GL_TEXTURE_MAG_FILTER, Gl::GL_LINEAR)
+    Gl.glTexParameteri(Gl::GL_TEXTURE_2D, Gl::GL_TEXTURE_WRAP_S, Gl::GL_CLAMP_TO_EDGE)
+    Gl.glTexParameteri(Gl::GL_TEXTURE_2D, Gl::GL_TEXTURE_WRAP_T, Gl::GL_CLAMP_TO_EDGE)
+    Gl.glTexParameteri(Gl::GL_TEXTURE_2D, Gl::GL_TEXTURE_MIN_FILTER, Gl::GL_LINEAR)
+    Gl.glTexParameteri(Gl::GL_TEXTURE_2D, Gl::GL_TEXTURE_MAG_FILTER, Gl::GL_LINEAR)
 
-    Gl::glTexImage2D(
+    Gl.glTexImage2D(
       Gl::GL_TEXTURE_2D,      # target
       0,                      # level
       format,                 # internal format
