@@ -19,7 +19,6 @@
 
 
 require 'snow-data'
-require 'fiddle'
 require 'gui/gl'
 
 
