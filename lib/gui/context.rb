@@ -48,6 +48,14 @@ class Context
       Glfw::Window.window_hint(Glfw::OPENGL_PROFILE, Glfw::OPENGL_CORE_PROFILE)
     end
 
+    def post(blocklike = nil, &block)
+      ctx = __active_context__
+      raise "No active context to post block to" unless ctx
+      ctx.post(blocklike) if blocklike
+      ctx.post(block) if block
+      self
+    end
+
   end # singleton_class
 
 
@@ -122,9 +130,10 @@ class Context
     @root_context
   end
 
-  def post(*args, **kvargs, &block)
-    raise ArgumentError, "No block given" unless block_given?
-    @blocks << -> { block.call(*args, **kvargs) }
+  def post(blocklike = nil, &block)
+    raise ArgumentError, "No block given" unless blocklike || block
+    @blocks << blocklike if blocklike
+    @blocks << block if block
     self
   end
 
