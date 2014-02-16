@@ -20,6 +20,7 @@
 
 require 'glfw3'
 require 'opengl-core'
+require 'gui/gl/program'
 
 
 module GUI
@@ -62,6 +63,44 @@ class Context
     @sequence     = 0
     @root_context = Glfw::Window.new(64, 64, '', nil, nil)
     @blocks       = []
+
+    curr = Glfw::Window.current_context
+    @root_context.make_context_current
+
+    @program       = ProgramObject.new
+    @program.load_shader(Gl::GL_VERTEX_SHADER, <<-EOS)
+    #version 150
+
+    in vec4 position;
+    in vec4 color;
+    smooth out vec4 color_var;
+    uniform mat4 projection;
+    uniform mat4 modelview;
+
+    void main() {
+      gl_Position = projection * modelview * position;
+      color_var = color;
+    }
+    EOS
+
+    @program.load_shader(Gl::GL_FRAGMENT_SHADER, <<-EOS)
+    #version 150
+
+    smooth in vec4 color_var;
+    out vec4 frag_color;
+
+    void main() {
+      frag_color = color_var;
+    }
+    EOS
+
+    @program.link
+
+    if curr
+      curr.make_context_current
+    else
+      Glfw::Window.unset_context
+    end
   end
 
   def enable_realtime
@@ -139,7 +178,7 @@ class Context
 
         block[*args, **kvargs] if block
 
-        @windows.each(&:__swap_buffers__)
+        @program.use { @windows.each(&:__swap_buffers__) }
       end
     end
   end
