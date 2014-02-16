@@ -1,7 +1,5 @@
 #!/usr/bin/env ruby -w
 
-`./update-release-date`
-
 str = File.open('lib/gui/version.rb', 'r', &:read)
 
 VERSION_REGEX = /(GUI_VERSION\s*=\s*')(\d+.\d+.\d+)(?:.pre(\d+))?(')/
