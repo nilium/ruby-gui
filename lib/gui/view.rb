@@ -124,7 +124,7 @@ class View
       # push relevant state
       subview.draw
       # pop relevant state
-    done
+    end
   end
 
   def [](selector)
