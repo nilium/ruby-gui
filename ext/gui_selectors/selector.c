@@ -47,6 +47,10 @@
 
 /*
   stretchy buffer
+  public domain, found at http://nothings.org/stb/stretchy_buffer.txt
+
+  Slightly modified from its original form to add an sbcapacity macro.
+
   init: NULL
   free: sbfree()
   push_back: sbpush()
