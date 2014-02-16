@@ -56,11 +56,27 @@ class Context
   def initialize
     self.class.__init_context__
 
+    @realtime     = 0
     @windows      = []
     @textures     = {}
     @sequence     = 0
     @root_context = Glfw::Window.new(64, 64, '', nil, nil)
     @blocks       = []
+  end
+
+  def enable_realtime
+    @realtime += 1
+    self
+  end
+
+  def disable_realtime
+    @realtime -= 1
+    raise "Underflow on realtime counter" if @realtime < 0
+    self
+  end
+
+  def realtime?
+    @realtime > 0
   end
 
   def shared_context
@@ -111,7 +127,12 @@ class Context
     bind do
       this_sequence = @sequence
       while @sequence >= this_sequence && !@windows.empty?
-        Glfw.wait_events
+        if realtime?
+          Glfw.poll_events
+        else
+          Glfw.wait_events
+        end
+
         block[*args, **kvargs] if block
 
         @windows.each(&:__swap_buffers__)
