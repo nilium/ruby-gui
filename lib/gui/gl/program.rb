@@ -14,8 +14,8 @@
 #
 #  -----------------------------------------------------------------------------
 #
-#  shader.rb
-#    Basic shader object
+#  program.rb
+#    Basic shader program object
 
 
 require 'snow-data'
