@@ -119,6 +119,14 @@ class View
     nil
   end
 
+  def draw_subviews
+    @subviews.each do |subview|
+      # push relevant state
+      subview.draw
+      # pop relevant state
+    done
+  end
+
   def [](selector)
     case selector
     when Symbol   then view_with_tag(selector)
