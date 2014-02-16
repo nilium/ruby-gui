@@ -44,7 +44,7 @@ class ProgramObject < GLObject
       end
     end
 
-  end
+  end # singleton_class
 
 
   def initialize
@@ -136,6 +136,6 @@ class ProgramObject < GLObject
     end
   end
 
-end
+end # ProgramObject
 
-end
+end # GUI
