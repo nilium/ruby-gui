@@ -127,6 +127,10 @@ class Context
     bind do
       this_sequence = @sequence
       while @sequence >= this_sequence && !@windows.empty?
+        @blocks.each(&:call).reject! do |posted_block|
+          !posted_block.respond_to?(:done?) || posted_block.done?
+        end
+
         if realtime?
           Glfw.poll_events
         else
@@ -136,8 +140,6 @@ class Context
         block[*args, **kvargs] if block
 
         @windows.each(&:__swap_buffers__)
-
-        @blocks.each(&:call).clear
       end
     end
   end
