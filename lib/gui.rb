@@ -17,8 +17,15 @@
 #  gui.rb
 #    Root file for the gui gem. Imports other parts of the gem.
 
+
+require 'glfw3'
+require 'snow-data'
+require 'snow-math'
+require 'opengl-core'
+
 require 'gui/version'
 require 'gui/geom'
+require 'gui/color'
 require 'gui/selector'
 require 'gui/selector/checks'
 require 'gui/selector_ext'
