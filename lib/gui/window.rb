@@ -33,49 +33,69 @@ class Window < View
 
   attr_accessor :background
 
-  def initialize(width, height, title, context = nil)
+  def initialize(frame, title, context = nil)
     context ||= Context.__active_context__
-    context.windows << self
 
+    @title = title
     @background = Color.dark_grey
     @in_update = []
     @context = context
-    @glfw_window = ::Glfw::Window.new(width, height, title, nil, context.shared_context)
 
-    @glfw_window.set_size_callback do |window, x, y|
-      unless @in_update.include? :frame
-        @in_update << :frame
-        @frame.size.x = x
-        @frame.size.y = y
-        @in_update.delete :frame
-        invalidate(bounds)
+    super(frame)
+
+    __window__
+  end
+
+  def __window__
+    @glfw_window ||= begin
+      window = ::Glfw::Window.new(
+        @frame.size.x,
+        @frame.size.y,
+        @title,
+        nil,
+        @context.shared_context
+        ).set_position(*@frame.origin)
+
+      window.set_size_callback do |w, x, y|
+        unless @in_update.include? :frame
+          @in_update << :frame
+          @frame.size.x = x
+          @frame.size.y = y
+          @in_update.delete :frame
+          invalidate(bounds)
+        end
       end
-    end
 
-    @glfw_window.set_position_callback do |window, x, y|
-      unless @in_update.include? :frame
-        @in_update << :frame
-        @frame.origin.x = x
-        @frame.origin.y = y
-        @in_update.delete :frame
+      window.set_position_callback do |w, x, y|
+        unless @in_update.include? :frame
+          @in_update << :frame
+          @frame.origin.x = x
+          @frame.origin.y = y
+          @in_update.delete :frame
+        end
       end
-    end
 
-    @glfw_window.set_close_callback do |window|
-      @glfw_window.should_close = false
-      close
-    end
+      window.set_close_callback do |w|
+        close
+      end
 
-    super(Rect[*@glfw_window.position, *@glfw_window.size])
+      @context.windows << self
+
+      window
+    end
   end
 
   def scale_factor
-    @glfw_window.framebuffer_size[0] / @frame.size.x
+    if @glfw_window
+      @glfw_window.framebuffer_size[0] / @frame.size.x
+    else
+      1.0
+    end
   end
 
   def frame=(new_frame)
     unless @in_update.include? :frame
-      @glfw_window
+      __window__
         .set_position(new_frame.origin.x, new_frame.origin.y)
         .set_size(new_frame.size.x, new_frame.size.y)
     end
@@ -86,18 +106,26 @@ class Window < View
   end
 
   def show
-    @glfw_window.show
+    __window__.show
   end
 
   def hide
-    @glfw_window.hide
+    __window__.hide
   end
 
   # May be overridden to change whether clicking the close button actually
-  # closes the window.
+  # closes the window. A super call destroys the window, so any further access
+  # to it is currently undefined behavior.
   def close
-    @glfw_window.should_close = true
-    @context.windows.delete(self)
+    if @glfw_window
+      prev_window = @glfw_window
+      @glfw_window = nil
+      # Note: post this since otherwise destroying the window here will do
+      # Bad Things(r) if #close is called from a callback (which it is). Be
+      # very careful about that.
+      @context.post { prev_window.destroy }
+      @context.windows.delete(self)
+    end
   end
 
   def __swap_buffers__
@@ -105,7 +133,7 @@ class Window < View
 
     last_ctx = Glfw::Window.current_context
     begin
-      @glfw_window.make_context_current
+      __window__.make_context_current
       loops = MAX_INVALIDATE_LOOPS
 
       begin
@@ -131,7 +159,7 @@ class Window < View
 
         loops -= 1
       end until @invalidated.nil? || loops <= 0
-      @glfw_window.swap_buffers
+      __window__.swap_buffers
 
       if @invalidated
         $stderr.puts "Terminating window invalidation loop after #{MAX_INVALIDATE_LOOPS} runs"
