@@ -49,9 +49,10 @@ class ProgramObject < GLObject
 
   def initialize
     super
-    self.name = Gl.glCreateProgram()
+    @attached_shaders   = []
+    @uniform_locations  = {}
+    self.name           = Gl.glCreateProgram()
     raise "Shader couldn't be created" unless self.name > 0
-    @attached_shaders = []
   end
 
   def load_shader(kind, source)
@@ -106,6 +107,9 @@ class ProgramObject < GLObject
     end
 
     destroy_attached_shaders
+    @uniform_locations.clear
+
+    self
   end
 
   def use(&block)
@@ -116,6 +120,7 @@ class ProgramObject < GLObject
       end
     else
       Gl.glUseProgram(self.name)
+      self
     end
   end
 
@@ -127,6 +132,17 @@ class ProgramObject < GLObject
     end.clear
     self
   end
+
+  # name => Symbol
+  # Returns the uniform location for the named uniform. Caches the result for
+  # repeated access.
+  def uniform_location(name)
+    @uniform_locations[name.to_sym] ||= begin
+      Gl.glGetUniformLocation(self.name, name.to_s)
+    end
+  end
+
+  alias_method :[], :uniform_location
 
   def destroy
     destroy_attached_shaders
