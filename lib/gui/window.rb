@@ -31,10 +31,13 @@ class Window < View
 
   MAX_INVALIDATE_LOOPS = 5
 
+  attr_accessor :background
+
   def initialize(width, height, title, context = nil)
     context ||= Context.__active_context__
     context.windows << self
 
+    @background = Color.dark_grey
     @in_update = []
     @context = context
     @glfw_window = ::Glfw::Window.new(width, height, title, nil, context.shared_context)
@@ -121,9 +124,11 @@ class Window < View
             region.height * scale_factor
             )
 
+          Gl.glClearColor(*@background)
+          Gl.glClear(Gl::GL_COLOR_BUFFER_BIT)
+
           # draw_subviews (those within region)
 
-          Gl.glClear(Gl::GL_COLOR_BUFFER_BIT)
           Gl.glDisable(Gl::GL_SCISSOR_TEST)
         end
 
