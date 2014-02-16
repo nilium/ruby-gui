@@ -83,9 +83,6 @@ class Window < View
   end
 
   def draw
-    @glfw_window.make_context_current
-    draw
-    super
   end
 
   def show
