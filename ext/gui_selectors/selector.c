@@ -19,12 +19,18 @@
   size: sbcount()
   resize: sbresize()
 */
-#define sbfree(a)         ((a) ? free(stb__sbraw(a)),0 : 0)
-#define sbpush(a,v)       (stb__sbmaybegrow(a,1), (a)[stb__sbn(a)++] = (v))
-#define sbcount(a)        ((a) ? stb__sbn(a) : 0)
-#define sbadd(a,n)        (stb__sbmaybegrow(a,n), stb__sbn(a)+=(n), &(a)[stb__sbn(a)-(n)])
-#define sblast(a)         ((a)[stb__sbn(a)-1])
-#define sbcapacity(a)     ((a) ? stb__sbm(a) : 0)
+#define sbfree(a)     \
+  ((a) ? free(stb__sbraw(a)),0 : 0)
+#define sbpush(a,v)   \
+  (stb__sbmaybegrow(a,1), (a)[stb__sbn(a)++] = (v))
+#define sbcount(a)    \
+  ((a) ? stb__sbn(a) : 0)
+#define sbadd(a,n)    \
+  (stb__sbmaybegrow(a,n), stb__sbn(a)+=(n), &(a)[stb__sbn(a)-(n)])
+#define sblast(a)     \
+  ((a)[stb__sbn(a)-1])
+#define sbcapacity(a) \
+  ((a) ? stb__sbm(a) : 0)
 
 #include <stdlib.h>
 #define stb__sbraw(a) ((int *) (a) - 2)
@@ -149,12 +155,44 @@ FNAME ()                                                             \
   if (NAME == 0) NAME = rb_intern(SYM)
 
 
-static LAZY_MODULE_DEF(q_gui_module, GUI);
-static LAZY_MODULE_DEF_UNDER(q_parser_module, q_gui_module(), SelectorParser);
-static LAZY_CLASS_DEF_UNDER(q_selector_class, q_gui_module(), Selector, rb_cObject);
-static LAZY_CLASS_DEF_UNDER(q_view_class_check, q_gui_module(), ViewClassCheck, rb_cObject);
-static LAZY_CLASS_DEF_UNDER(q_view_tag_check, q_gui_module(), ViewTagCheck, rb_cObject);
-static LAZY_CLASS_DEF_UNDER(q_view_attr_check, q_gui_module(), ViewAttrCheck, rb_cObject);
+static LAZY_MODULE_DEF(
+  q_gui_module,
+  GUI
+  );
+
+static LAZY_MODULE_DEF_UNDER(
+  q_parser_module,
+  q_gui_module(),
+  SelectorParser
+  );
+
+static LAZY_CLASS_DEF_UNDER(
+  q_selector_class,
+  q_gui_module(),
+  Selector,
+  rb_cObject
+  );
+
+static LAZY_CLASS_DEF_UNDER(
+  q_view_class_check,
+  q_gui_module(),
+  ViewClassCheck,
+  rb_cObject
+  );
+
+static LAZY_CLASS_DEF_UNDER(
+  q_view_tag_check,
+  q_gui_module(),
+  ViewTagCheck,
+  rb_cObject
+  );
+
+static LAZY_CLASS_DEF_UNDER(
+  q_view_attr_check,
+  q_gui_module(),
+  ViewAttrCheck,
+  rb_cObject
+  );
 
 
 /* Operator names */
@@ -383,7 +421,8 @@ int
 q_accept_until(qparser_t *parser, qchars_t chars, int add_to_buffer)
 {
   int accepted = 0;
-  while (!q_eos(parser) && !q_strnchr(chars.chars, chars.length, q_peek(parser))) {
+  while (!q_eos(parser)
+         && !q_strnchr(chars.chars, chars.length, q_peek(parser))) {
     q_read(parser, add_to_buffer);
     ++accepted;
   }
@@ -468,7 +507,10 @@ q_read_number(qparser_t *parser)
 
     if (q_accept(parser, Q_DECIMAL_MARK, Q_ADD_TO_BUFFER)) {
       if (!q_accept_run(parser, Q_DIGITS, Q_ADD_TO_BUFFER)) {
-        rb_raise(rb_eRuntimeError, "Invalid number format: expected fractional value");
+        rb_raise(
+          rb_eRuntimeError,
+          "Invalid number format: expected fractional value"
+          );
         return Qnil;
       }
 
@@ -798,7 +840,10 @@ q_rb_parse_selector(VALUE self, VALUE selector_rb_str)
   const char *sel_cstr = StringValuePtr(selector_rb_str);
   VALUE wrapped_parser = Data_Wrap_Struct(rb_cData, NULL, NULL, &parser);
 
-  /* don't use rb_str_length -- just want length in bytes, not necessary valid characters */
+  /*
+    don't use rb_str_length -- just want length in bytes, not necessary valid
+    characters
+  */
   q_init_parser(&parser, sel_cstr, (int)RSTRING_LEN(selector_rb_str));
 
   return rb_ensure(
