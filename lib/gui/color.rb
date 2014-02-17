@@ -98,6 +98,14 @@ class Color < ::Snow::Vec4
     clamped(self)
   end
 
+  def to_i
+    bx = (self.x * 255.0).to_i & 0xFF
+    by = (self.y * 255.0).to_i & 0xFF
+    bz = (self.z * 255.0).to_i & 0xFF
+    bw = (self.w * 255.0).to_i & 0xFF
+    (((((bw << 8) | bz) << 8) | by) << 8) | bx
+  end
+
 end
 
 end
