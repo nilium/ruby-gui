@@ -67,6 +67,8 @@ class Window < View
     @background = Color.dark_grey
     @in_update = []
     @context = context
+    @events = []
+    @event_redirects = {}
 
     super(frame)
 
@@ -112,6 +114,10 @@ class Window < View
 
       window
     end
+  end
+
+  def handle_event(event)
+    super
   end
 
   def scale_factor
@@ -192,6 +198,68 @@ class Window < View
 
       window.swap_buffers
     end # bind_context(window)
+  end
+
+
+  # Event dispatch
+
+  def __post_event__(event)
+    event.target = @event_redirects[event.kind] || event.target
+    @events << event
+  end
+
+  def __dispatch_event_upwards__(event, target, tested_views)
+    return unless event.propagating?
+
+    above = target && target.respond_to?(:superview) && target.superview
+
+    while event.propagating? && above
+      if above.respond_to?(:handle_event) && !tested_views.include?(above.__id__)
+        tested_views << above.__id__
+        above.handle_event(event)
+      end
+
+      above = above.respond_to?(:superview) && above.superview
+    end
+  end
+
+  def __dispatch_events__
+    @events.each do |event|
+      tested_views = Set.new
+
+      begin
+        target = event.target
+
+        unless tested_views.include?(target.__id__)
+          if target && target.respond_to?(:handle_event)
+            target.handle_event(event)
+            tested_views << target.__id__
+          end
+
+          break unless event.propagating?
+        end
+      end until target.__id__ == event.target.__id__
+
+      __dispatch_event_upwards__(event, target, tested_views)
+
+      next if event.target || !event.propagating?
+
+      # If the event is still propagating, send it to all the leaf views and
+      # their superviews next.
+      leaf_views.each do |leaf|
+        view = leaf.view
+        next if tested_views.include?(view.__id__)
+
+        if view.respond_to?(:handle_event)
+          tested_views << view.__id__
+          view.handle_event(event)
+        end
+
+        break unless event.propagating?
+
+        __dispatch_event_upwards__(event, view, tested_views)
+      end
+    end.clear
   end
 
 end # Window
