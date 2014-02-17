@@ -18,13 +18,14 @@
 #    Window base class
 
 
+require 'set'
 require 'glfw3'
 require 'gui/context'
 require 'gui/view'
 require 'gui/geom'
 require 'gui/driver'
-require 'set'
 require 'gui/gl/texture'
+require 'gui/event'
 
 
 module GUI
