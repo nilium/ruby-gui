@@ -52,6 +52,75 @@ class View
     request_layout
   end
 
+  def scale_factor
+    window.scale_factor
+  end
+
+  def views_containing_point(point, out: nil)
+    out ||= []
+
+    if bounds.include?(point)
+      out.unshift self
+
+      converted_point = Vec2.new
+      @subviews.each do |view|
+        point.copy(converted_point)
+        converted_point.add!(view.frame.origin)
+        view.views_containing_point(converted_point, out: out)
+      end
+    end
+
+    out
+  end
+
+  def convert_to_root(point, out = nil)
+    out ||= point.copy
+    below = self
+    while below.superview
+      out.subtract!(below.frame.origin)
+      below = below.superview
+    end
+    out
+  end
+
+  def convert_from_root(point, out = nil)
+    out ||= point.copy
+    below = self
+    while below.superview
+      out.add!(below.frame.origin)
+      below = below.superview
+    end
+    out
+  end
+
+  def handle_event(event)
+  end
+
+  def window
+    above = self
+    above = above.superview while above.superview && !above.kind_of?(Window)
+    above
+  end
+
+  def root_view
+    above = self
+    above = above.superview while above.superview
+    above
+  end
+
+  def each_superview
+    if block_given?
+      above = superview
+      while above
+        yield(above)
+        above = above.superview
+      end
+      self
+    else
+      to_enum(:each_superview)
+    end
+  end
+
   # Returns the containing superview of the view.
   def superview
     @superview
