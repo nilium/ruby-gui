@@ -30,26 +30,37 @@ class Texture < GLObject
   class << self
 
     def load_from_io(io)
-      STBI.load_image(io, STBI::COMPONENTS_DEFAULT) do |data, x, y, components|
-        self.new.bind(GL_TEXTURE_2D) do |tex|
-          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
-          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
-          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+      STBI.load_image(io, STBI::COMPONENTS_DEFAULT) do |data, x, y, components; target, type|
+        target = Gl::GL_TEXTURE_2D
+        type = Gl::GL_UNSIGNED_BYTE
 
-          glTexImage2D(
-            GL_TEXTURE_2D, 0, format, x, y, 0, format, GL_UNSIGNED_BYTE, data)
+        self.new.bind(target) do |tex|
+          format =
+            case components
+            when STBI::COMPONENTS_GREY then Gl::GL_RED
+            when STBI::COMPONENTS_GREY_ALPHA then Gl::GL_RG
+            when STBI::COMPONENTS_RGB then Gl::GL_RGB
+            when STBI::COMPONENTS_RGB_ALPHA then Gl::GL_RGBA
+            else raise ArgumentError, "Invalid components: #{components}"
+            end
 
-          tex.retain
+          Gl.glTexParameteri(target, Gl::GL_TEXTURE_WRAP_S, Gl::GL_CLAMP_TO_EDGE)
+          Gl.glTexParameteri(target, Gl::GL_TEXTURE_WRAP_T, Gl::GL_CLAMP_TO_EDGE)
+          Gl.glTexParameteri(target, Gl::GL_TEXTURE_MIN_FILTER, Gl::GL_LINEAR)
+          Gl.glTexParameteri(target, Gl::GL_TEXTURE_MAG_FILTER, Gl::GL_LINEAR)
+
+          Gl.glTexImage2D(target, 0, format, x, y, 0, format, type, data)
+
+          tex
         end
       end
     end
 
     def target_binding(target)
       case target
-      when GL_TEXTURE_1D then GL_TEXTURE_BINDING_1D
-      when GL_TEXTURE_2D then GL_TEXTURE_BINDING_2D
-      when GL_TEXTURE_3D then GL_TEXTURE_BINDING_3D
+      when Gl::GL_TEXTURE_1D then Gl::GL_TEXTURE_BINDING_1D
+      when Gl::GL_TEXTURE_2D then Gl::GL_TEXTURE_BINDING_2D
+      when Gl::GL_TEXTURE_3D then Gl::GL_TEXTURE_BINDING_3D
       else raise NotImplementError,
         "No binding getter provided for 0x#{target.to_s(16)} yet"
       end
@@ -72,24 +83,27 @@ class Texture < GLObject
 
   def initialize
     super()
-    glGenTextures(1, self.address)
+    Gl.glGenTextures(1, self.address)
+    @target = nil
+    raise GLCreateFailedError, "Unable to create texture" if self.name == 0
   end
 
   def bind(target = nil, &block)
-    @target ||= (target ||= @target || Gl.GL_TEXTURE_2D)
+    target ||= @target || Gl::GL_TEXTURE_2D
+    @target ||= target
     if block
       self.class.preserve_binding(target) do
-        glBindTexture(target, self.name)
+        Gl.glBindTexture(target, self.name)
         block[self]
       end
     else
-      glBindTexture(target, self.name)
+      Gl.glBindTexture(target, self.name)
     end
   end
 
   def destroy
     if self.name != 0
-      glDeleteTextures(1, self.address)
+      Gl.glDeleteTextures(1, self.address)
       self.name = 0
     end
   end
