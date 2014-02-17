@@ -161,45 +161,41 @@ class Window < View
   def __swap_buffers__
     return unless @invalidated
 
-    last_ctx = Glfw::Window.current_context
-    begin
-      __window__.make_context_current
+    self.class.bind_context(__window__) do
       loops = MAX_INVALIDATE_LOOPS
 
-      begin
-        region = @invalidated
-        @invalidated = nil
+      @context.program.use do |prog|
 
-        if !region.empty?
-          Gl.glEnable(Gl::GL_SCISSOR_TEST)
-          Gl.glScissor(
-            region.x * scale_factor,
-            (@frame.height - region.bottom) * scale_factor,
-            region.width * scale_factor,
-            region.height * scale_factor
-            )
+        begin
 
-          Gl.glClearColor(*@background)
-          Gl.glClear(Gl::GL_COLOR_BUFFER_BIT)
+          region = @invalidated
+          @invalidated = nil
 
-          # draw_subviews (those within region)
+          if !region.empty?
+            Gl.glEnable(Gl::GL_SCISSOR_TEST)
+            Gl.glScissor(
+              region.x * scale_factor,
+              (@frame.height - region.bottom) * scale_factor,
+              region.width * scale_factor,
+              region.height * scale_factor
+              )
 
-          Gl.glDisable(Gl::GL_SCISSOR_TEST)
-        end
+            Gl.glClearColor(*@background)
+            Gl.glClear(Gl::GL_COLOR_BUFFER_BIT)
 
-        loops -= 1
-      end until @invalidated.nil? || loops <= 0
-      __window__.swap_buffers
+            # draw_subviews (those within region)
+
+            Gl.glDisable(Gl::GL_SCISSOR_TEST)
+          end
+
+          loops -= 1
+        end until @invalidated.nil? || loops <= 0
+
+        __window__.swap_buffers
+      end
 
       if @invalidated
         $stderr.puts "Terminating window invalidation loop after #{MAX_INVALIDATE_LOOPS} runs"
-      end
-
-    ensure
-      if last_ctx
-        last_ctx.make_context_current
-      else
-        Glfw::Window.unset_context
       end
     end
   end
