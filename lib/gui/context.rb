@@ -27,6 +27,11 @@ module GUI
 
 class Context
 
+  FRAG_OUT0       = 0
+  POSITION_ATTRIB = 1
+  COLOR_ATTRIB    = 2
+  TEXCOORD_ATTRIB = 3
+
   class << self
 
     attr_accessor :__active_context__
@@ -60,6 +65,7 @@ class Context
 
 
   attr_accessor :windows
+  attr_reader   :program
 
 
   def initialize
@@ -72,42 +78,50 @@ class Context
     @root_context = Glfw::Window.new(64, 64, '', nil, nil)
     @blocks       = []
 
-    curr = Glfw::Window.current_context
-    @root_context.make_context_current
+    Window.bind_context(@root_context) do
+      @program = ProgramObject.new
+      @program.load_shader(Gl::GL_VERTEX_SHADER, <<-EOS)
+      #version 150
 
-    @program       = ProgramObject.new
-    @program.load_shader(Gl::GL_VERTEX_SHADER, <<-EOS)
-    #version 150
+      in vec4 position;
+      in vec2 texcoord;
+      in vec4 color;
 
-    in vec4 position;
-    in vec4 color;
-    smooth out vec4 color_var;
-    uniform mat4 projection;
-    uniform mat4 modelview;
+      smooth out vec4 color_var;
+      smooth out vec2 texcoord_var;
 
-    void main() {
-      gl_Position = projection * modelview * position;
-      color_var = color;
-    }
-    EOS
+      uniform mat4 projection;
+      uniform mat4 modelview;
 
-    @program.load_shader(Gl::GL_FRAGMENT_SHADER, <<-EOS)
-    #version 150
+      void main() {
+          gl_Position = projection * modelview * position;
+          color_var = color;
+          texcoord_var = texcoord;
+      }
 
-    smooth in vec4 color_var;
-    out vec4 frag_color;
+      EOS
 
-    void main() {
-      frag_color = color_var;
-    }
-    EOS
+      @program.load_shader(Gl::GL_FRAGMENT_SHADER, <<-EOS)
+      #version 150
 
-    @program.link
+      smooth in vec4 color_var;
+      smooth in vec2 texcoord_var;
 
-    if curr
-      curr.make_context_current
-    else
-      Glfw::Window.unset_context
+      uniform sampler2D diffuse;
+
+      out vec4 frag_color;
+
+      void main() {
+          frag_color = color_var * texture(diffuse, texcoord_var);
+      }
+      EOS
+
+      @program.bind_attrib(POSITION_ATTRIB, :position)
+      @program.bind_attrib(TEXCOORD_ATTRIB, :texcoord)
+      @program.bind_attrib(COLOR_ATTRIB,    :color)
+      @program.bind_frag_data_location(FRAG_OUT0, :frag_color)
+
+      @program.link
     end
   end
 
@@ -187,7 +201,9 @@ class Context
 
         block[*args, **kvargs] if block
 
-        @program.use { @windows.each(&:__swap_buffers__) }
+        @windows.each do |window|
+          window.__swap_buffers__
+        end
       end
     end
   end
