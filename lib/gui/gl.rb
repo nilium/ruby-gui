@@ -200,6 +200,7 @@ class VertexArrayObject < GLObject
       end
     else
       Gl.glBindVertexArray(self.name)
+      self
     end
   end
 
