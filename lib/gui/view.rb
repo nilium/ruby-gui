@@ -228,11 +228,17 @@ class View
     nil
   end
 
-  def draw_subviews
+  def draw(driver)
+  end
+
+  def draw_subviews(driver)
     @subviews.each do |subview|
-      # push relevant state
-      subview.draw
-      # pop relevant state
+      # driver.push_state do
+        # push relevant state
+        subview.draw(driver)
+        subview.draw_subviews(driver)
+        # pop relevant state
+      # end
     end
   end
 
