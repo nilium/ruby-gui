@@ -45,10 +45,8 @@ class Window < View
           bind_context(current)
         end
       elsif window
-        puts "Binding context for #{window}"
         window.make_context_current
       else
-        puts "Unbinding window context"
         Glfw::Window.unset_context
       end
 
