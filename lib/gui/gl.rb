@@ -149,7 +149,7 @@ class BufferObject < GLObject
     target ||= @target || Gl::GL_ARRAY_BUFFER
     @target ||= target
     if block
-      self.class.preserve_binding do
+      self.class.preserve_binding(target) do
         Gl.glBindBuffer(target, self.name)
         block[self]
       end
