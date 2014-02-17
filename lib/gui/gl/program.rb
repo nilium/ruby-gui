@@ -133,6 +133,16 @@ class ProgramObject < GLObject
     self
   end
 
+  def bind_attrib(index, name)
+    Gl.glBindAttribLocation(self.name, index, name.to_s)
+    self
+  end
+
+  def bind_frag_data_location(color_number, name)
+    Gl.glBindFragDataLocation(self.name, color_number, name.to_s)
+    self
+  end
+
   # name => Symbol
   # Returns the uniform location for the named uniform. Caches the result for
   # repeated access.
