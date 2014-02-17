@@ -131,15 +131,18 @@ class Window < View
     super
   end
 
-  def draw
+  def draw(driver)
   end
 
   def show
     __window__.show
+    invalidate
+    self
   end
 
   def hide
     __window__.hide
+    self
   end
 
   # May be overridden to change whether clicking the close button actually
