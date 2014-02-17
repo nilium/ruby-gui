@@ -99,27 +99,45 @@ class Window < View
         @context.shared_context
         ).set_position(*@frame.origin)
 
-      window.set_size_callback do |w, x, y|
+      window.size_callback = -> (wnd, x, y) do
         unless @in_update.include? :frame
-          @in_update << :frame
           @frame.size.x = x
           @frame.size.y = y
-          @in_update.delete :frame
           invalidate(bounds)
+          __post_event__ Event[self, :resized, target: self, frame: @frame.dup]
         end
+      end
+
+      window.framebuffer_size_callback = -> (wnd, x, y) do
+        invalidate(bounds)
       end
 
       window.set_position_callback do |w, x, y|
         unless @in_update.include? :frame
-          @in_update << :frame
           @frame.origin.x = x
           @frame.origin.y = y
-          @in_update.delete :frame
+          __post_event__ Event[self, :resized, target: self, frame: @frame.dup]
         end
+      end
+
+      window.set_refresh_callback do |w|
+        invalidate(bounds)
       end
 
       window.set_close_callback do |w|
         close
+      end
+
+      window.mouse_button_callback = -> (wnd, button, action, mods) do
+        pos = Vec2[*wnd.cursor_pos]
+        target = self.views_containing_point(pos).first || self
+        __post_event__ Event[self, :mouse_button,
+          target: target,
+          action: action,
+          button: button,
+          modifiers: mods,
+          position: target.convert_from_root(pos, pos)
+        ]
       end
 
       @context.windows << self
