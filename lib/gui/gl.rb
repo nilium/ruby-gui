@@ -180,7 +180,7 @@ class VertexArrayObject < GLObject
       begin
         yield(*args, **kvargs)
       ensure
-        Gl.glUseProgram(prev_name.name)
+        Gl.glBindVertexArray(prev_name.name)
       end
     end
 
