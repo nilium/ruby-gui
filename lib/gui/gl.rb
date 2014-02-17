@@ -155,6 +155,7 @@ class BufferObject < GLObject
       end
     else
       Gl.glBindBuffer(target, self.name)
+      self
     end
   end
 
