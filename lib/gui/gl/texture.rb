@@ -29,29 +29,42 @@ class Texture < GLObject
 
   class << self
 
-    def load_from_io(io)
-      STBI.load_image(io, STBI::COMPONENTS_DEFAULT) do |data, x, y, components; target, type|
-        target = Gl::GL_TEXTURE_2D
-        type = Gl::GL_UNSIGNED_BYTE
+    def __load_texture_data__(target, data, x, y, components)
+      format =
+        case components
+        when STBI::COMPONENTS_GREY then Gl::GL_RED
+        when STBI::COMPONENTS_GREY_ALPHA then Gl::GL_RG
+        when STBI::COMPONENTS_RGB then Gl::GL_RGB
+        when STBI::COMPONENTS_RGB_ALPHA then Gl::GL_RGBA
+        else raise ArgumentError, "Invalid components: #{components}"
+        end
 
+      Gl.glTexParameteri(target, Gl::GL_TEXTURE_WRAP_S, Gl::GL_CLAMP_TO_EDGE)
+      Gl.glTexParameteri(target, Gl::GL_TEXTURE_WRAP_T, Gl::GL_CLAMP_TO_EDGE)
+      Gl.glTexParameteri(target, Gl::GL_TEXTURE_MIN_FILTER, Gl::GL_LINEAR)
+      Gl.glTexParameteri(target, Gl::GL_TEXTURE_MAG_FILTER, Gl::GL_LINEAR)
+
+      Gl.glTexImage2D(target, 0, format, x, y, 0, format, Gl::GL_UNSIGNED_BYTE, data)
+    end
+
+    # Loads a texture using the given IO object for reading. If a block is
+    # given, the texture object, data, width, height, and number of components
+    # will be passed to the block for loading -- the result of the block is
+    # returned. Otherwise, the texture is loaded as a standard 2D texture and
+    # the texture object is returned.
+    #
+    # In block form, the texture's target is assumed to either be known or
+    # acquired from the texture object's target member.
+    def load_from_io(io, target = nil, &block)
+      target ||= Gl::GL_TEXTURE_2D
+      STBI.load_image(io, STBI::COMPONENTS_DEFAULT) do |data, x, y, components|
         self.new.bind(target) do |tex|
-          format =
-            case components
-            when STBI::COMPONENTS_GREY then Gl::GL_RED
-            when STBI::COMPONENTS_GREY_ALPHA then Gl::GL_RG
-            when STBI::COMPONENTS_RGB then Gl::GL_RGB
-            when STBI::COMPONENTS_RGB_ALPHA then Gl::GL_RGBA
-            else raise ArgumentError, "Invalid components: #{components}"
-            end
-
-          Gl.glTexParameteri(target, Gl::GL_TEXTURE_WRAP_S, Gl::GL_CLAMP_TO_EDGE)
-          Gl.glTexParameteri(target, Gl::GL_TEXTURE_WRAP_T, Gl::GL_CLAMP_TO_EDGE)
-          Gl.glTexParameteri(target, Gl::GL_TEXTURE_MIN_FILTER, Gl::GL_LINEAR)
-          Gl.glTexParameteri(target, Gl::GL_TEXTURE_MAG_FILTER, Gl::GL_LINEAR)
-
-          Gl.glTexImage2D(target, 0, format, x, y, 0, format, type, data)
-
-          tex
+          if block
+            block[tex, data, x, y, components]
+          else
+            __load_texture_data__(target, data, x, y, components)
+            tex
+          end
         end
       end
     end
