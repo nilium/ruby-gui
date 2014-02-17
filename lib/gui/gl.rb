@@ -118,7 +118,7 @@ class BufferObject < GLObject
       when Gl::GL_ARRAY_BUFFER then Gl::GL_ARRAY_BUFFER_BINDING
       when Gl::GL_ELEMENT_ARRAY_BUFFER then Gl::GL_ELEMENT_ARRAY_BUFFER_BINDING
       else raise ArgumentError,
-        "Revered binding for 0x#{target.to_s(16)} not provided"
+        "Reserved binding for 0x#{target.to_s(16)} not provided"
       end
     end
 
