@@ -203,7 +203,7 @@ class Context
         end
 
         @windows.each do |window|
-          window.__dispatch_events__
+          window.dispatch_events
         end
 
         block[*args, **kvargs] if block

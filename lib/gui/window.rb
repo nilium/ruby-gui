@@ -26,11 +26,14 @@ require 'gui/geom'
 require 'gui/driver'
 require 'gui/gl/texture'
 require 'gui/event'
+require 'gui/event_dispatch'
 
 
 module GUI
 
 class Window < View
+
+  include EventDispatch
 
 
   class << self
@@ -65,8 +68,6 @@ class Window < View
     @background = Color.dark_grey
     @in_update = []
     @context = context
-    @events = []
-    @event_redirects = {}
 
     super(frame)
 
@@ -102,7 +103,7 @@ class Window < View
           @frame.size.x = x
           @frame.size.y = y
           invalidate(bounds)
-          __post_event__ Event[self, :resized, target: self, frame: @frame.dup]
+          post_event Event[self, :resized, target: self, frame: @frame.dup]
         end
       end
 
@@ -114,7 +115,7 @@ class Window < View
         unless @in_update.include? :frame
           @frame.origin.x = x
           @frame.origin.y = y
-          __post_event__ Event[self, :resized, target: self, frame: @frame.dup]
+          post_event Event[self, :resized, target: self, frame: @frame.dup]
         end
       end
 
@@ -123,13 +124,13 @@ class Window < View
       end
 
       window.set_close_callback do |w|
-        __post_event__ Event[self, :close_button, target: self]
+        post_event Event[self, :close_button, target: self]
       end
 
       window.mouse_button_callback = -> (wnd, button, action, mods) do
         pos = Vec2[*wnd.cursor_pos]
         target = self.views_containing_point(pos).first || self
-        __post_event__ Event[self, :mouse_button,
+        post_event Event[self, :mouse_button,
           target: target,
           action: action,
           button: button,
@@ -264,68 +265,6 @@ class Window < View
 
       window.swap_buffers
     end # bind_context(window)
-  end
-
-
-  # Event dispatch
-
-  def __post_event__(event)
-    event.target = @event_redirects[event.kind] || event.target
-    @events << event
-  end
-
-  def __dispatch_event_upwards__(event, target, tested_views)
-    return unless event.propagating?
-
-    above = target && target.respond_to?(:superview) && target.superview
-
-    while event.propagating? && above
-      if above.respond_to?(:handle_event) && !tested_views.include?(above.__id__)
-        tested_views << above.__id__
-        above.handle_event(event)
-      end
-
-      above = above.respond_to?(:superview) && above.superview
-    end
-  end
-
-  def __dispatch_events__
-    @events.each do |event|
-      tested_views = Set.new
-
-      begin
-        target = event.target
-
-        unless tested_views.include?(target.__id__)
-          if target && target.respond_to?(:handle_event)
-            target.handle_event(event)
-            tested_views << target.__id__
-          end
-
-          break unless event.propagating?
-        end
-      end until target.__id__ == event.target.__id__
-
-      __dispatch_event_upwards__(event, target, tested_views)
-
-      next if event.target || !event.propagating?
-
-      # If the event is still propagating, send it to all the leaf views and
-      # their superviews next.
-      leaf_views.each do |leaf|
-        view = leaf.view
-        next if tested_views.include?(view.__id__)
-
-        if view.respond_to?(:handle_event)
-          tested_views << view.__id__
-          view.handle_event(event)
-        end
-
-        break unless event.propagating?
-
-        __dispatch_event_upwards__(event, view, tested_views)
-      end
-    end.clear
   end
 
 end # Window
