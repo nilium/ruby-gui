@@ -189,6 +189,7 @@ class VertexArrayObject < GLObject
   def initialize
     super
     Gl.glGenVertexArrays(1, self.address)
+    raise GLCreateFailedError, "Unable to create vertex array object" if self.name == 0
   end
 
   def bind(&block)
