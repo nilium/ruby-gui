@@ -129,9 +129,10 @@ class View
   # Sets the containing superview of the view. This invalidates and requests
   # layout on the previous superview, if any.
   def superview=(new_superview)
+    self.__invalidate_leaf_caches__
+
     old_superview = @superview
     if !old_superview.nil?
-      old_superview.__invalidate_leaf_caches__
       old_superview.subviews.delete(self)
       old_superview.invalidate(@frame)
       old_superview.request_layout
@@ -152,13 +153,13 @@ class View
   end
 
   def leaf_views(__out: nil, __depth: nil, __cache: true)
+    __out   ||= []
+    __depth ||= 0
+
     if @leaf_cache
       __out += @leaf_cache if __out.__id__ != @leaf_cache.__id__
       return @leaf_cache
     end
-
-    __out   ||= []
-    __depth ||= 0
 
     if @subviews.empty?
       __out << ViewDepth[self, __depth]
