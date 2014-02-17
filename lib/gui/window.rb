@@ -18,7 +18,6 @@
 #    Window base class
 
 
-require 'set'
 require 'glfw3'
 require 'gui/context'
 require 'gui/view'
