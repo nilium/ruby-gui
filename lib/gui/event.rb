@@ -39,7 +39,7 @@ class Event
     @info = info.freeze
     @cancelled = false
     @propagating = true
-    @target = info[target]
+    @target = info[:target]
   end
 
   def method_missing(meth, *args)
