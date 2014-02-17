@@ -102,7 +102,7 @@ class GLObject
       yield self if block_given?
       destroy
     elsif @refs < 0
-      raise ""
+      raise "Object with retain count of zero released"
     end
   end
 
