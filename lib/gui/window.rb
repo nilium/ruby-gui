@@ -58,8 +58,6 @@ class Window < View
   end
 
 
-  MAX_INVALIDATE_LOOPS = 5
-
   attr_accessor :background
 
   def initialize(frame, title, context = nil)
@@ -162,43 +160,35 @@ class Window < View
   def __swap_buffers__
     return unless @invalidated
 
-    self.class.bind_context(__window__) do
-      loops = MAX_INVALIDATE_LOOPS
-
+    window = __window__
+    self.class.bind_context(window) do
       @context.program.use do |prog|
+        region = @invalidated
+        @invalidated = nil
 
-        begin
+        if !region.empty?
+          Gl.glEnable(Gl::GL_BLEND)
+          Gl.glBlendFunc(Gl::GL_SRC_ALPHA, Gl::GL_ONE_MINUS_SRC_ALPHA)
+          Gl.glEnable(Gl::GL_SCISSOR_TEST)
+          Gl.glScissor(
+            region.x * scale_factor,
+            (@frame.height - region.bottom) * scale_factor,
+            region.width * scale_factor,
+            region.height * scale_factor
+            )
 
-          region = @invalidated
-          @invalidated = nil
+          Gl.glClearColor(*@background)
+          Gl.glClear(Gl::GL_COLOR_BUFFER_BIT)
 
-          if !region.empty?
-            Gl.glEnable(Gl::GL_SCISSOR_TEST)
-            Gl.glScissor(
-              region.x * scale_factor,
-              (@frame.height - region.bottom) * scale_factor,
-              region.width * scale_factor,
-              region.height * scale_factor
-              )
+          # draw_subviews (those within region)
 
-            Gl.glClearColor(*@background)
-            Gl.glClear(Gl::GL_COLOR_BUFFER_BIT)
+          Gl.glDisable(Gl::GL_SCISSOR_TEST)
+        end # !region.empty?
 
-            # draw_subviews (those within region)
+      end # program.use
 
-            Gl.glDisable(Gl::GL_SCISSOR_TEST)
-          end
-
-          loops -= 1
-        end until @invalidated.nil? || loops <= 0
-
-        __window__.swap_buffers
-      end
-
-      if @invalidated
-        $stderr.puts "Terminating window invalidation loop after #{MAX_INVALIDATE_LOOPS} runs"
-      end
-    end
+      window.swap_buffers
+    end # bind_context(window)
   end
 
 end # Window
