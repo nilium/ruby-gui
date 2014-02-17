@@ -52,13 +52,13 @@ class ProgramObject < GLObject
     @attached_shaders   = []
     @uniform_locations  = {}
     self.name           = Gl.glCreateProgram()
-    raise "Shader couldn't be created" unless self.name > 0
+    raise GLCreateFailedError, "Unable to create program object" unless self.name > 0
   end
 
   def load_shader(kind, source)
     source = source.read if source.kind_of?(IO)
     shader = Gl.glCreateShader(kind)
-    raise "Unable to create shader" unless shader > 0
+    raise GLCreateFailedError, "Unable to create shader" unless shader > 0
 
     # Actually a good situation to use packed strings in.
     Gl.glShaderSource(shader, 1, [source].pack('p'), [source.length].pack('i'))
@@ -78,7 +78,7 @@ class ProgramObject < GLObject
 
       Gl.glDeleteShader(shader)
 
-      raise "Unable to compile shader: #{log}"
+      raise GLCreateFailedError, "Unable to compile shader: #{log}"
     end
 
     Gl.glAttachShader(self.name, shader)
@@ -103,7 +103,7 @@ class ProgramObject < GLObject
         Gl.glGetProgramInfoLog(shader, log.bytesize, 0, log)
       end
 
-      raise "Unable to link program: #{log}"
+      raise GLCreateFailedError, "Unable to link program: #{log}"
     end
 
     destroy_attached_shaders
