@@ -212,6 +212,19 @@ class Rect
     contains_both(other, self)
   end
 
+  def include?(point_or_rect)
+    case point_or_rect
+    when Vec2
+      p = point_or_rect
+      left <= p.x && p.x <= right && top <= p.y && p.y <= bottom
+    when Rect
+      r = point_or_rect
+      left <= r.left && r.right <= right && top <= r.top && r.bottom <= bottom
+    else
+      Raise ArgumentError, "Expected rect or point"
+    end
+  end
+
   def set(x, y, width, height)
     @origin.x = x
     @origin.y = y
