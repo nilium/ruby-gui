@@ -176,12 +176,36 @@ class Window < View
     end
   end
 
+  def __prepare_uniforms__(program)
+    ortho = Mat4.new
+    modelview = Mat4.new
+
+    mv_loc = program.uniform_location(:modelview)
+    pr_loc = program.uniform_location(:projection)
+
+    Mat4.orthographic(
+      0.0, @frame.size.x,
+      0.0, @frame.size.y,
+      -1.0, 1.0,
+      ortho
+      )
+
+    modelview.load_identity.
+      translate!(0.0, window.frame.size.y, 0.0).
+      multiply_mat4!(Mat4.new.scale!(1.0, -1.0, 1.0))
+
+    Gl.glUniformMatrix4fv(pr_loc, 1, Gl::GL_FALSE, ortho.address)
+    Gl.glUniformMatrix4fv(mv_loc, 1, Gl::GL_FALSE, modelview.address)
+  end
+
   def __swap_buffers__
     return unless @invalidated
 
     window = __window__
     self.class.bind_context(window) do
       @context.program.use do |prog|
+        __prepare_uniforms__(prog)
+
         region = @invalidated
         @invalidated = nil
 
