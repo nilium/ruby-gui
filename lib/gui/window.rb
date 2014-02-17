@@ -75,6 +75,16 @@ class Window < View
     __window__
   end
 
+  def title
+    @title
+  end
+
+  def title=(new_title)
+    @title = new_title.to_s
+    @glfw_window.title = @title if @glfw_window
+    new_title
+  end
+
   def __window__
     @glfw_window ||= begin
       @context.class.__set_window_flags__
