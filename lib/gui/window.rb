@@ -125,7 +125,7 @@ class Window < View
       end
 
       window.set_close_callback do |w|
-        close
+        __post_event__ Event[self, :close_button, target: self]
       end
 
       window.mouse_button_callback = -> (wnd, button, action, mods) do
@@ -147,7 +147,13 @@ class Window < View
   end
 
   def handle_event(event)
-    super
+    case event.kind
+    when :close_button
+      event.stop_propagation!
+      close if !event.cancelled?
+
+    else super
+    end
   end
 
   def scale_factor
