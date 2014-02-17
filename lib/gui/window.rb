@@ -22,12 +22,40 @@ require 'glfw3'
 require 'gui/context'
 require 'gui/view'
 require 'gui/geom'
+require 'gui/driver'
 require 'set'
+require 'gui/gl/texture'
 
 
 module GUI
 
 class Window < View
+
+
+  class << self
+
+    def bind_context(window)
+      if block_given?
+        current = Glfw::Window.current_context
+        begin
+          bind_context(window)
+          yield
+        ensure
+          bind_context(current)
+        end
+      elsif window
+        puts "Binding context for #{window}"
+        window.make_context_current
+      else
+        puts "Unbinding window context"
+        Glfw::Window.unset_context
+      end
+
+      nil
+    end
+
+  end
+
 
   MAX_INVALIDATE_LOOPS = 5
 
