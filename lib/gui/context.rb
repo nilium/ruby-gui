@@ -202,6 +202,10 @@ class Context
           Glfw.wait_events
         end
 
+        @windows.each do |window|
+          window.__dispatch_events__
+        end
+
         block[*args, **kvargs] if block
 
         @windows.each do |window|
