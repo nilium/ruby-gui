@@ -23,6 +23,12 @@ require 'snow-math'
 
 module GUI
 
+Vec3 = Snow::Vec3
+Vec4 = Snow::Vec4
+Quat = Snow::Quat
+Mat3 = Snow::Mat3
+Mat4 = Snow::Mat4
+
 class Vec2 < Snow::Vec2
 
   def min(other, out = nil)
