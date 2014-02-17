@@ -430,7 +430,7 @@ class Driver
 
   # Takes a request_uniform_cb method so the texture unit can be set
   def draw_stages(vao, indices_offset: 0)
-    raise "Invalid VAO" unless vao or vao.name == 0
+    raise "Invalid VAO" unless vao && vao.name != 0
 
     Gl.glActiveTexture(Gl::GL_TEXTURE0)
     Texture.preserve_binding(Gl::GL_TEXTURE_2D) do
@@ -591,7 +591,7 @@ class BufferedDriver < Driver
       end
     end
 
-    super(@vao)
+    super(@vao) unless @stages.empty?
   end
 
 end # BufferedDriver
