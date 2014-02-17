@@ -185,13 +185,16 @@ class Context
     end
   end
 
+  def run_blocks(seq)
+    seq.dup.each(&:call)
+    seq.reject! { |b| !b.respond_to?(:done?) || b.done? }
+  end
+
   def run(*args, **kvargs, &block)
     bind do
       this_sequence = @sequence
       while @sequence >= this_sequence && !@windows.empty?
-        @blocks.each(&:call).reject! do |posted_block|
-          !posted_block.respond_to?(:done?) || posted_block.done?
-        end
+        run_blocks @blocks
 
         if realtime?
           Glfw.poll_events
