@@ -72,7 +72,9 @@ class Window < View
 
     super(frame)
 
-    __window__
+    self.class.bind_context(__window__) do
+      @driver = BufferedDriver.new
+    end
   end
 
   def title
@@ -204,6 +206,9 @@ class Window < View
     window = __window__
     self.class.bind_context(window) do
       @context.program.use do |prog|
+        @driver.request_uniform_cb = -> (name) { prog[name] }
+        @driver.origin = Vec2[0.0, 0.0]
+
         __prepare_uniforms__(prog)
 
         region = @invalidated
@@ -223,7 +228,12 @@ class Window < View
           Gl.glClearColor(*@background)
           Gl.glClear(Gl::GL_COLOR_BUFFER_BIT)
 
-          # draw_subviews (those within region)
+          @driver.clear
+
+          self.draw(@driver)
+          self.draw_subviews(@driver)
+
+          @driver.draw_stages
 
           Gl.glDisable(Gl::GL_SCISSOR_TEST)
         end # !region.empty?
