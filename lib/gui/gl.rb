@@ -30,6 +30,52 @@ GLObject = Snow::CStruct.new do
 end
 
 
+class GLCreateFailedError < StandardError ; end
+
+
+class GLError < StandardError
+  class << self ; alias_method :[], :new ; end
+
+  attr_reader :code
+
+  def initialize(code, message = nil)
+    @code = code
+    message = message.to_s
+    super("GL Error: 0x#{code.to_s(16)} (#{
+      case code
+      when Gl::GL_NO_ERROR                      then 'NO_ERROR'
+      when Gl::GL_INVALID_ENUM                  then 'INVALID_ENUM'
+      when Gl::GL_INVALID_VALUE                 then 'INVALID_VALUE'
+      when Gl::GL_INVALID_OPERATION             then 'INVALID_OPERATION'
+      when Gl::GL_INVALID_FRAMEBUFFER_OPERATION then 'INVALID_FRAMEBUFFER_OPERATION'
+      when Gl::GL_OUT_OF_MEMORY                 then 'OUT_OF_MEMORY'
+      when Gl::GL_STACK_UNDERFLOW               then 'STACK_UNDERFLOW'
+      when Gl::GL_STACK_OVERFLOW                then 'STACK_OVERFLOW'
+      end
+      })#{': ' unless message.empty?}#{message}")
+  end
+
+  def exception(message = nil)
+    if message.nil?
+      self
+    else
+      self.class.new(@code, message)
+    end
+  end
+end
+
+
+class << self
+
+  def assert_no_gl_error(msg = nil)
+    e = Gl.glGetError
+    warn GLError[e, msg] if e != Gl::GL_NO_ERROR
+    nil
+  end
+
+end
+
+
 class GLObject
 
   alias_method :__base_initialize__, :initialize
