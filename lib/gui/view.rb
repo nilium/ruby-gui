@@ -25,6 +25,9 @@ module GUI
 
 class View
 
+  ViewDepth = Struct.new(:view, :depth)
+  ViewDepth::SORT_PROC = -> (l, r) { -(l.depth <=> r.depth) }
+
   # View tag (default: nil)
   attr_accessor :tag
 
@@ -36,6 +39,7 @@ class View
   attr_accessor :frame # Rect
 
   def initialize(frame = nil)
+    @leaf_cache     = nil
     @needs_layout   = false
     @invalidated    = nil
     @subviews       = []
@@ -58,20 +62,56 @@ class View
   def superview=(new_superview)
     old_superview = @superview
     if !old_superview.nil?
-      old_superview.delete(self)
-      old_superview.invalidate(@frame.dup)
+      old_superview.__invalidate_leaf_caches__
+      old_superview.subviews.delete(self)
+      old_superview.invalidate(@frame)
       old_superview.request_layout
     end
 
     @superview = new_superview
     if !new_superview.nil?
-      new_superview.children << self
+      new_superview.subviews << self
+      new_superview.__invalidate_leaf_caches__
+      new_superview.invalidate(@frame)
+      new_superview.request_layout
     end
+  end
+
+  def __invalidate_leaf_caches__
+    @leaf_cache = nil
+    superview.__invalidate_leaf_caches__ if superview
+  end
+
+  def leaf_views(__out: nil, __depth: nil, __cache: true)
+    if @leaf_cache
+      __out += @leaf_cache if __out.__id__ != @leaf_cache.__id__
+      return @leaf_cache
+    end
+
+    __out   ||= []
+    __depth ||= 0
+
+    if @subviews.empty?
+      __out << ViewDepth[self, __depth]
+    else
+      @subviews.each do |view|
+        view.leaf_views(__out: __out, __depth: __depth + 1, __cache: false)
+      end
+    end
+
+    __out.uniq!
+    __out.sort!(&ViewDepth::SORT_PROC)
+
+    @leaf_cache = __out if __cache
+
+    __out
   end
 
   def add_view(view)
     raise ArgumentError, "View already has a superview" if view.superview
     view.superview = self
+    __invalidate_leaf_caches__
+    self
   end
 
   def bounds
