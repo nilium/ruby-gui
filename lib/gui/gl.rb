@@ -136,9 +136,13 @@ class BufferObject < GLObject
 
   end # singleton_class
 
+  attr_accessor :target
+
   def initialize
     super
     Gl.glGenBuffers(1, self.address)
+    raise GLCreateFailedError, "Unable to create buffer object" if self.name == 0
+    @target = nil
   end
 
   def bind(target = nil, &block)
