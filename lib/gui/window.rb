@@ -76,6 +76,8 @@ class Window < View
 
   def __window__
     @glfw_window ||= begin
+      @context.class.__set_window_flags__
+
       window = ::Glfw::Window.new(
         @frame.size.x,
         @frame.size.y,
