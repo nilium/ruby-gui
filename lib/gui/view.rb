@@ -52,6 +52,14 @@ class View
     request_layout
   end
 
+  def redirect_events(kind, to_target)
+    window.redirect_events(kind, to_target)
+  end
+
+  def post_event(event)
+    window.post_event
+  end
+
   def scale_factor
     window.scale_factor
   end
