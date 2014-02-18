@@ -98,6 +98,8 @@ module EventDispatch
         dispatch_event_with_target(event, visited, parent_msg: parent_msg) do
           redirects[kind]
         end
+
+        next unless event.propagating?
       end
 
       dispatch_event_with_target(event, visited, parent_msg: parent_msg) do
