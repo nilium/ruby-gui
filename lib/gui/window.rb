@@ -134,7 +134,7 @@ class Window < View
           action: action,
           button: button,
           modifiers: mods,
-          position: target.convert_from_root(pos, pos)
+          position: pos
         ]
       end
 
