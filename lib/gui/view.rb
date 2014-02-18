@@ -85,7 +85,7 @@ class View
     out ||= point.copy
     below = self
     while below.superview
-      out.subtract!(below.frame.origin)
+      out.add!(below.frame.origin)
       below = below.superview
     end
     out
@@ -95,7 +95,7 @@ class View
     out ||= point.copy
     below = self
     while below.superview
-      out.add!(below.frame.origin)
+      out.subtract!(below.frame.origin)
       below = below.superview
     end
     out
