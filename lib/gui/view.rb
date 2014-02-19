@@ -47,9 +47,25 @@ class View
     @superview      = nil
     @tag            = nil
     @frame          = frame || Rect.new
+    @window_cache   = nil
+    @rootview_cache = nil
 
     invalidate
     request_layout
+  end
+
+  # Recursively called for subviews to invalidate their caches as well.
+  def __invalidate_ascendant_view_caches__
+    @window_cache = nil
+    @rootview_cache = nil
+    @subviews.each(&:__invalidate_ascendant_view_caches__)
+    self
+  end
+
+  def invalidate_caches
+    __invalidate_leaf_caches__
+    __invalidate_ascendant_view_caches__
+    self
   end
 
   def redirect_events(kind, to_target)
@@ -105,15 +121,19 @@ class View
   end
 
   def window
-    above = self
-    above = above.superview while above.superview && !above.kind_of?(Window)
-    above
+    @window_cache ||= begin
+      above = self
+      above = above.superview while above.superview && !above.kind_of?(Window)
+      above if above.kind_of?(Window)
+    end
   end
 
   def root_view
-    above = self
-    above = above.superview while above.superview
-    above
+    @rootview_cache ||= begin
+      above = self
+      above = above.superview while above.superview
+      above
+    end
   end
 
   def each_superview
@@ -153,34 +173,37 @@ class View
       new_superview.invalidate(@frame)
       new_superview.request_layout
     end
+
+    __invalidate_ascendant_view_caches__
+
+    new_superview
   end
 
   def __invalidate_leaf_caches__
     @leaf_cache = nil
-    superview.__invalidate_leaf_caches__ if superview
+    each_superview(&:__invalidate_leaf_caches__)
   end
 
-  def leaf_views(__out: nil, __depth: nil, __cache: true)
+  # If cache is true, the results will be cached leaf views relative to this
+  # view, but only if the output and depth arguments are nil.
+  def leaf_views(__out: nil, __depth: nil, cache: true)
+    return @leaf_cache if @leaf_cache && cache && !__out && !__depth
+
     __out   ||= []
     __depth ||= 0
-
-    if @leaf_cache
-      __out += @leaf_cache if __out.__id__ != @leaf_cache.__id__
-      return @leaf_cache
-    end
 
     if @subviews.empty?
       __out << ViewDepth[self, __depth]
     else
       @subviews.each do |view|
-        view.leaf_views(__out: __out, __depth: __depth + 1, __cache: false)
+        view.leaf_views(__out: __out, __depth: __depth + 1, cache: false)
       end
     end
 
     __out.uniq!
     __out.sort!(&ViewDepth::SORT_PROC)
 
-    @leaf_cache = __out if __cache
+    @leaf_cache = __out if cache
 
     __out
   end
