@@ -76,6 +76,14 @@ class Window < View
     end
   end
 
+  def window
+    self
+  end
+
+  def root_view
+    self
+  end
+
   def title
     @title
   end
