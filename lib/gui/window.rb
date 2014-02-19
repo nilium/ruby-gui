@@ -59,6 +59,7 @@ class Window < View
 
 
   attr_accessor :background
+  attr_reader   :context
 
   def initialize(frame, title, context = nil)
     context ||= Context.__active_context__
