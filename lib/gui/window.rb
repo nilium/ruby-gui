@@ -84,6 +84,10 @@ class Window < View
     self
   end
 
+  def superview=(new_superview)
+    raise "Cannot set the superview of a window"
+  end
+
   def title
     @title
   end
