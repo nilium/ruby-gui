@@ -20,7 +20,7 @@
 
 module GUI
 
-  GUI_VERSION           = '0.0.1.pre2'.freeze
+  GUI_VERSION           = '0.0.1.pre3'.freeze
   GUI_LICENSE_BRIEF     = 'Apache 2.0 License'.freeze
   GUI_GEM_ROOT          = File.expand_path('../../../', __FILE__).freeze
 
