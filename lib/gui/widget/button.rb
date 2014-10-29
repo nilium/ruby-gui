@@ -72,8 +72,6 @@ class Button < View
           end
         end
       end
-
-    else super
     end
   end
 
