@@ -46,30 +46,29 @@ class Button < View
   def handle_event(event)
     case event.kind
     when :mouse_button
-      action_button = event.button == 0
-      if action_button
-        pos = convert_from_root(event.position.dup)
-        case event.action
-        when Glfw::PRESS
-          if bounds.include?(pos)
-            event.stop_propagation!
-            redirect_events(:mouse_button, self)
-            @down = true
-          end
+      return unless event.button == 0
 
-        when Glfw::RELEASE
-          if @down
-            event.stop_propagation!
-            redirect_events(:mouse_button, nil)
-            @down = false
-            if bounds.include?(pos) && on_click_block
-              # NOTE: Should the click event fire on press or release? Release
-              # makes more sense since you can drag the mouse away and let go
-              # to cancel a press (like most OSes) but press means there's no
-              # need to handle button release...
-              on_click_block[self]
-            end
-          end
+      pos = convert_from_root(event.position.dup)
+      case event.action
+      when Glfw::PRESS
+        return unless bounds.include? pos
+
+        event.stop_propagation!
+        redirect_events(:mouse_button, self)
+        @down = true
+
+      when Glfw::RELEASE
+        return unless @down
+
+        event.stop_propagation!
+        redirect_events(:mouse_button, nil)
+        @down = false
+        if bounds.include?(pos) && on_click_block
+          # NOTE: Should the click event fire on press or release? Release
+          # makes more sense since you can drag the mouse away and let go
+          # to cancel a press (like most OSes) but press means there's no
+          # need to handle button release...
+          on_click_block[self]
         end
       end
     end
