@@ -1,5 +1,9 @@
 *.bundle
+*.dylib
+*.so
+*.dll
 Makefile
+makefile
 *.o
 .DS_Store
 *.gem
