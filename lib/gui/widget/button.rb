@@ -26,6 +26,9 @@ require 'gui/event'
 module GUI
 
 
+#
+# Basic rectangular button class.
+#
 class Button < View
 
   attr_accessor :on_click_block
@@ -60,6 +63,10 @@ class Button < View
             redirect_events(:mouse_button, nil)
             @down = false
             if bounds.include?(pos) && on_click_block
+              # NOTE: Should the click event fire on press or release? Release
+              # makes more sense since you can drag the mouse away and let go
+              # to cancel a press (like most OSes) but press means there's no
+              # need to handle button release...
               on_click_block[self]
             end
           end
@@ -71,6 +78,7 @@ class Button < View
   end
 
   def draw(driver)
+    # TODO: Everything related to rendition (text, button frame)
   end
 
 end
