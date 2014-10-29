@@ -1,0 +1,5 @@
+#!/bin/sh
+
+VERSIONSTR="$(ruby -I"$(dirname $0)/lib" -e 'require "gui/version";puts GUI::GUI_VERSION')"
+
+gem build gui.gemspec && gem install "gui-${VERSIONSTR}.gem"
