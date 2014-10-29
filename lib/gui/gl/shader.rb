@@ -24,13 +24,13 @@ class Program
 
   def initialize
     super
-    @program = Gl.glCreateProgram()
+    @program = GL.glCreateProgram()
     @attached_shaders = []
   end
 
   def load_shader(kind, source)
     source = source.read if source.kind_of?(IO)
-    shader = Gl.glCreateShader(kind)
+    shader = GL.glCreateShader(kind)
     @attached_shaders << shader
 
   end

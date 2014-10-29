@@ -46,10 +46,10 @@ class Context
     end
 
     def __set_window_flags__
-      Glfw::Window.window_hint(Glfw::VISIBLE, Gl::GL_FALSE)
+      Glfw::Window.window_hint(Glfw::VISIBLE, GL::GL_FALSE)
       Glfw::Window.window_hint(Glfw::CONTEXT_VERSION_MAJOR, 3)
       Glfw::Window.window_hint(Glfw::CONTEXT_VERSION_MINOR, 2)
-      Glfw::Window.window_hint(Glfw::OPENGL_FORWARD_COMPAT, Gl::GL_TRUE)
+      Glfw::Window.window_hint(Glfw::OPENGL_FORWARD_COMPAT, GL::GL_TRUE)
       Glfw::Window.window_hint(Glfw::OPENGL_PROFILE, Glfw::OPENGL_CORE_PROFILE)
     end
 
@@ -80,7 +80,7 @@ class Context
 
     Window.bind_context(@root_context) do
       @program = ProgramObject.new
-      @program.load_shader(Gl::GL_VERTEX_SHADER, <<-EOS)
+      @program.load_shader(GL::GL_VERTEX_SHADER, <<-EOS)
       #version 150
 
       in vec4 position;
@@ -101,7 +101,7 @@ class Context
 
       EOS
 
-      @program.load_shader(Gl::GL_FRAGMENT_SHADER, <<-EOS)
+      @program.load_shader(GL::GL_FRAGMENT_SHADER, <<-EOS)
       #version 150
 
       smooth in vec4 color_var;

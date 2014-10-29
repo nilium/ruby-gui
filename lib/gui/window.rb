@@ -231,8 +231,8 @@ class Window < View
       translate!(0.0, window.frame.size.y, 0.0).
       multiply_mat4!(Mat4.new.scale!(1.0, -1.0, 1.0))
 
-    Gl.glUniformMatrix4fv(pr_loc, 1, Gl::GL_FALSE, ortho.address)
-    Gl.glUniformMatrix4fv(mv_loc, 1, Gl::GL_FALSE, modelview.address)
+    GL.glUniformMatrix4fv(pr_loc, 1, GL::GL_FALSE, ortho.address)
+    GL.glUniformMatrix4fv(mv_loc, 1, GL::GL_FALSE, modelview.address)
   end
 
   def __swap_buffers__
@@ -250,18 +250,18 @@ class Window < View
         @invalidated = nil
 
         if !region.empty?
-          Gl.glEnable(Gl::GL_BLEND)
-          Gl.glBlendFunc(Gl::GL_SRC_ALPHA, Gl::GL_ONE_MINUS_SRC_ALPHA)
-          Gl.glEnable(Gl::GL_SCISSOR_TEST)
-          Gl.glScissor(
+          GL.glEnable(GL::GL_BLEND)
+          GL.glBlendFunc(GL::GL_SRC_ALPHA, GL::GL_ONE_MINUS_SRC_ALPHA)
+          GL.glEnable(GL::GL_SCISSOR_TEST)
+          GL.glScissor(
             region.x * scale_factor,
             (@frame.height - region.bottom) * scale_factor,
             region.width * scale_factor,
             region.height * scale_factor
             )
 
-          Gl.glClearColor(*@background)
-          Gl.glClear(Gl::GL_COLOR_BUFFER_BIT)
+          GL.glClearColor(*@background)
+          GL.glClear(GL::GL_COLOR_BUFFER_BIT)
 
           @driver.clear
 
@@ -270,7 +270,7 @@ class Window < View
 
           @driver.draw_stages
 
-          Gl.glDisable(Gl::GL_SCISSOR_TEST)
+          GL.glDisable(GL::GL_SCISSOR_TEST)
         end # !region.empty?
 
       end # program.use

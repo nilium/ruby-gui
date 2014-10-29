@@ -38,7 +38,7 @@ Gem::Specification.new do |s|
   ]
 
   s.add_runtime_dependency 'glfw3',       '~> 0.4', '>= 0.4.5'
-  s.add_runtime_dependency 'opengl-core', '~> 1.3', '>= 1.3.2'
+  s.add_runtime_dependency 'opengl-core', '~> 2.0', '>= 2.0.1'
   s.add_runtime_dependency 'snow-math',   '~> 1.7', '>= 1.7.1'
   s.add_runtime_dependency 'snow-data',   '~> 1.3', '>= 1.3.0'
   s.add_runtime_dependency 'stb-image',   '~> 1.0', '>= 1.0.1'

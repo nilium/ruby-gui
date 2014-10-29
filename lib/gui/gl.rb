@@ -43,14 +43,14 @@ class GLError < StandardError
     message = message.to_s
     super("GL Error: 0x#{code.to_s(16)} (#{
       case code
-      when Gl::GL_NO_ERROR                      then 'NO_ERROR'
-      when Gl::GL_INVALID_ENUM                  then 'INVALID_ENUM'
-      when Gl::GL_INVALID_VALUE                 then 'INVALID_VALUE'
-      when Gl::GL_INVALID_OPERATION             then 'INVALID_OPERATION'
-      when Gl::GL_INVALID_FRAMEBUFFER_OPERATION then 'INVALID_FRAMEBUFFER_OPERATION'
-      when Gl::GL_OUT_OF_MEMORY                 then 'OUT_OF_MEMORY'
-      when Gl::GL_STACK_UNDERFLOW               then 'STACK_UNDERFLOW'
-      when Gl::GL_STACK_OVERFLOW                then 'STACK_OVERFLOW'
+      when GL::GL_NO_ERROR                      then 'NO_ERROR'
+      when GL::GL_INVALID_ENUM                  then 'INVALID_ENUM'
+      when GL::GL_INVALID_VALUE                 then 'INVALID_VALUE'
+      when GL::GL_INVALID_OPERATION             then 'INVALID_OPERATION'
+      when GL::GL_INVALID_FRAMEBUFFER_OPERATION then 'INVALID_FRAMEBUFFER_OPERATION'
+      when GL::GL_OUT_OF_MEMORY                 then 'OUT_OF_MEMORY'
+      when GL::GL_STACK_UNDERFLOW               then 'STACK_UNDERFLOW'
+      when GL::GL_STACK_OVERFLOW                then 'STACK_OVERFLOW'
       end
       })#{': ' unless message.empty?}#{message}")
   end
@@ -68,8 +68,8 @@ end
 class << self
 
   def assert_no_gl_error(msg = nil)
-    e = Gl.glGetError
-    warn GLError[e, msg] if e != Gl::GL_NO_ERROR
+    e = GL.glGetError
+    warn GLError[e, msg] if e != GL::GL_NO_ERROR
     nil
   end
 
@@ -115,8 +115,8 @@ class BufferObject < GLObject
 
     def target_binding(target)
       case target
-      when Gl::GL_ARRAY_BUFFER then Gl::GL_ARRAY_BUFFER_BINDING
-      when Gl::GL_ELEMENT_ARRAY_BUFFER then Gl::GL_ELEMENT_ARRAY_BUFFER_BINDING
+      when GL::GL_ARRAY_BUFFER then GL::GL_ARRAY_BUFFER_BINDING
+      when GL::GL_ELEMENT_ARRAY_BUFFER then GL::GL_ELEMENT_ARRAY_BUFFER_BINDING
       else raise ArgumentError,
         "Reserved binding for 0x#{target.to_s(16)} not provided"
       end
@@ -126,11 +126,11 @@ class BufferObject < GLObject
       raise ArgumentError, "No block given" unless block_given?
 
       prev_name = GLObject.new
-      Gl.glGetIntegerv(target_binding(target), prev_name.address)
+      GL.glGetIntegerv(target_binding(target), prev_name.address)
       begin
         yield(*args, **kvargs)
       ensure
-        Gl.glBindBuffer(target, prev_name.name)
+        GL.glBindBuffer(target, prev_name.name)
       end
     end
 
@@ -140,28 +140,28 @@ class BufferObject < GLObject
 
   def initialize
     super
-    Gl.glGenBuffers(1, self.address)
+    self.name = GL.glGenBuffers(1)
     raise GLCreateFailedError, "Unable to create buffer object" if self.name == 0
     @target = nil
   end
 
   def bind(target = nil, &block)
-    target ||= @target || Gl::GL_ARRAY_BUFFER
+    target ||= @target || GL::GL_ARRAY_BUFFER
     @target ||= target
     if block
       self.class.preserve_binding(target) do
-        Gl.glBindBuffer(target, self.name)
+        GL.glBindBuffer(target, self.name)
         block[self]
       end
     else
-      Gl.glBindBuffer(target, self.name)
+      GL.glBindBuffer(target, self.name)
       self
     end
   end
 
   def destroy
     if self.name != 0
-      Gl.glDeleteTextures(1, self.address)
+      GL.glDeleteTextures(1, self.address)
       self.name = 0
     end
   end
@@ -177,11 +177,11 @@ class VertexArrayObject < GLObject
       raise ArgumentError, "No block given" unless block_given?
 
       prev_name = GLObject.new
-      Gl.glGetIntegerv(Gl::GL_VERTEX_ARRAY_BINDING, prev_name.address)
+      GL.glGetIntegerv(GL::GL_VERTEX_ARRAY_BINDING, prev_name.address)
       begin
         yield(*args, **kvargs)
       ensure
-        Gl.glBindVertexArray(prev_name.name)
+        GL.glBindVertexArray(prev_name.name)
       end
     end
 
@@ -189,25 +189,25 @@ class VertexArrayObject < GLObject
 
   def initialize
     super
-    Gl.glGenVertexArrays(1, self.address)
+    GL.glGenVertexArrays(1, self.address)
     raise GLCreateFailedError, "Unable to create vertex array object" if self.name == 0
   end
 
   def bind(&block)
     if block
       self.class.preserve_binding do
-        Gl.glBindVertexArray(self.name)
+        GL.glBindVertexArray(self.name)
         block[self]
       end
     else
-      Gl.glBindVertexArray(self.name)
+      GL.glBindVertexArray(self.name)
       self
     end
   end
 
   def destroy
     if self.name != 0
-      Gl.glDeleteVertexArrays(1, self.address)
+      GL.glDeleteVertexArrays(1, self.address)
       self.name = 0
     end
   end

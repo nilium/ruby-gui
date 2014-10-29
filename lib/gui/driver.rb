@@ -62,7 +62,7 @@ class Driver
   end
 
 
-  FLOAT_TYPE      = Gl::GL_FLOAT
+  FLOAT_TYPE      = GL::GL_FLOAT
   VERTEX_STRIDE   = VertexSpec::SIZE
   POSITION_OFFSET = VertexSpec.offset_of(:position)
   POSITION_SIZE   = VertexSpec.length_of(:position)
@@ -222,44 +222,44 @@ class Driver
     vertex_offset: 0
     )
     VertexArrayObject.new.bind do |vao|
-      vertex_buffer.bind Gl::GL_ARRAY_BUFFER
-      index_buffer.bind Gl::GL_ELEMENT_ARRAY_BUFFER
+      vertex_buffer.bind GL::GL_ARRAY_BUFFER
+      index_buffer.bind GL::GL_ELEMENT_ARRAY_BUFFER
 
       position_offset = vertex_offset + POSITION_OFFSET
       color_offset    = vertex_offset + COLOR_OFFSET
       texcoord_offset = vertex_offset + TEXCOORD_OFFSET
 
       if position_attrib
-        Gl.glEnableVertexAttribArray(position_attrib)
-        Gl.glVertexAttribPointer(
+        GL.glEnableVertexAttribArray(position_attrib)
+        GL.glVertexAttribPointer(
           position_attrib,
           POSITION_SIZE,
           FLOAT_TYPE,
-          Gl::GL_FALSE,
+          GL::GL_FALSE,
           VERTEX_STRIDE,
           position_offset
           )
       end
 
       if color_attrib
-        Gl.glEnableVertexAttribArray color_attrib
-        Gl.glVertexAttribPointer(
+        GL.glEnableVertexAttribArray color_attrib
+        GL.glVertexAttribPointer(
           color_attrib,
           COLOR_SIZE,
           FLOAT_TYPE,
-          Gl::GL_FALSE,
+          GL::GL_FALSE,
           VERTEX_STRIDE,
           color_offset
           )
       end
 
       if texcoord_attrib
-        Gl.glEnableVertexAttribArray texcoord_attrib
-        Gl.glVertexAttribPointer(
+        GL.glEnableVertexAttribArray texcoord_attrib
+        GL.glVertexAttribPointer(
           texcoord_attrib,
           TEXCOORD_SIZE,
           FLOAT_TYPE,
-          Gl::GL_FALSE,
+          GL::GL_FALSE,
           VERTEX_STRIDE,
           texcoord_offset
           )
@@ -411,17 +411,17 @@ class Driver
     indices_offset: 0
     )
 
-    vertex_buffer.bind(Gl::GL_ARRAY_BUFFER) do
-      Gl.glBufferSubData(
-        Gl::GL_ARRAY_BUFFER,
+    vertex_buffer.bind(GL::GL_ARRAY_BUFFER) do
+      GL.glBufferSubData(
+        GL::GL_ARRAY_BUFFER,
         vertices_offset,
         vertex_data_size(),
         @vertices.address)
     end
 
-    index_buffer.bind(Gl::GL_ELEMENT_ARRAY_BUFFER) do
-      Gl.glBufferSubData(
-        Gl::GL_ELEMENT_ARRAY_BUFFER,
+    index_buffer.bind(GL::GL_ELEMENT_ARRAY_BUFFER) do
+      GL.glBufferSubData(
+        GL::GL_ELEMENT_ARRAY_BUFFER,
         indices_offset,
         index_data_size(),
         @faces.address)
@@ -432,28 +432,28 @@ class Driver
   def draw_stages(vao, indices_offset: 0)
     raise "Invalid VAO" unless vao && vao.name != 0
 
-    Gl.glActiveTexture(Gl::GL_TEXTURE0)
-    Texture.preserve_binding(Gl::GL_TEXTURE_2D) do
+    GL.glActiveTexture(GL::GL_TEXTURE0)
+    Texture.preserve_binding(GL::GL_TEXTURE_2D) do
       vao.bind do
         @stages.each do |stage|
-          # GUI.assert_nonzero_gl_binding(Gl::GL_CURRENT_PROGRAM)
+          # GUI.assert_nonzero_gl_binding(GL::GL_CURRENT_PROGRAM)
 
           texture = stage.texture
 
           offset = indices_offset + stage.base_face * 2
 
           if texture
-            texture.bind(Gl::GL_TEXTURE_2D)
+            texture.bind(GL::GL_TEXTURE_2D)
             diff_loc = @request_uniform_cb.call(:diffuse)
-            Gl.glUniform1i(diff_loc, 0)
+            GL.glUniform1i(diff_loc, 0)
           end
 
           next unless stage.faces > 0
 
-          Gl.glDrawElementsBaseVertex(
-            Gl::GL_TRIANGLES,
+          GL.glDrawElementsBaseVertex(
+            GL::GL_TRIANGLES,
             stage.faces * 3,
-            Gl::GL_UNSIGNED_SHORT,
+            GL::GL_UNSIGNED_SHORT,
             offset,
             stage.base_vertex
             )
@@ -505,8 +505,8 @@ class BufferedDriver < Driver
     vbo = BufferObject.new
     ibo = BufferObject.new
 
-    vbo.target = Gl::GL_ARRAY_BUFFER
-    ibo.target = Gl::GL_ELEMENT_ARRAY_BUFFER
+    vbo.target = GL::GL_ARRAY_BUFFER
+    ibo.target = GL::GL_ELEMENT_ARRAY_BUFFER
 
     ObjectSpace.define_finalizer(self) { destroy }
 
@@ -535,7 +535,7 @@ class BufferedDriver < Driver
     new_capacity = current_capacity if new_capacity < current_capacity
 
     buffer.bind do
-      Gl.glBufferData(buffer.target, new_capacity, 0, Gl::GL_DYNAMIC_DRAW)
+      GL.glBufferData(buffer.target, new_capacity, 0, GL::GL_DYNAMIC_DRAW)
     end
 
     new_capacity
