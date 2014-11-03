@@ -99,20 +99,20 @@ class View
 
   def convert_to_root(point, out = nil)
     out ||= point.copy
-    below = self
-    while below.superview
-      out.add!(below.frame.origin)
-      below = below.superview
+    above = self
+    while above.superview
+      out.add!(above.frame.origin)
+      above = above.superview
     end
     out
   end
 
   def convert_from_root(point, out = nil)
     out ||= point.copy
-    below = self
-    while below.superview
-      out.subtract!(below.frame.origin)
-      below = below.superview
+    above = self
+    while above.superview
+      out.subtract!(above.frame.origin)
+      above = above.superview
     end
     out
   end
