@@ -27,6 +27,41 @@ module GUI
 
 class Context
 
+  DEFAULT_FRAG_SHADER = <<-GLSL.freeze
+    #version 150
+
+    smooth in vec4 color_var;
+    smooth in vec2 texcoord_var;
+
+    uniform sampler2D diffuse;
+
+    out vec4 frag_color;
+
+    void main() {
+        frag_color = color_var * texture(diffuse, texcoord_var);
+    }
+  GLSL
+
+  DEFAULT_VERT_SHADER = <<-GLSL.freeze
+    #version 150
+
+    in vec4 position;
+    in vec2 texcoord;
+    in vec4 color;
+
+    smooth out vec4 color_var;
+    smooth out vec2 texcoord_var;
+
+    uniform mat4 projection;
+    uniform mat4 modelview;
+
+    void main() {
+        gl_Position = projection * modelview * position;
+        color_var = color;
+        texcoord_var = texcoord;
+    }
+  GLSL
+
   FRAG_OUT0       = 0
   POSITION_ATTRIB = 1
   COLOR_ATTRIB    = 2
@@ -80,41 +115,8 @@ class Context
 
     Window.bind_context(@root_context) do
       @program = ProgramObject.new
-      @program.load_shader(GL::GL_VERTEX_SHADER, <<-EOS)
-      #version 150
-
-      in vec4 position;
-      in vec2 texcoord;
-      in vec4 color;
-
-      smooth out vec4 color_var;
-      smooth out vec2 texcoord_var;
-
-      uniform mat4 projection;
-      uniform mat4 modelview;
-
-      void main() {
-          gl_Position = projection * modelview * position;
-          color_var = color;
-          texcoord_var = texcoord;
-      }
-
-      EOS
-
-      @program.load_shader(GL::GL_FRAGMENT_SHADER, <<-EOS)
-      #version 150
-
-      smooth in vec4 color_var;
-      smooth in vec2 texcoord_var;
-
-      uniform sampler2D diffuse;
-
-      out vec4 frag_color;
-
-      void main() {
-          frag_color = color_var * texture(diffuse, texcoord_var);
-      }
-      EOS
+      @program.load_shader(GL::GL_VERTEX_SHADER, DEFAULT_VERT_SHADER)
+      @program.load_shader(GL::GL_FRAGMENT_SHADER, DEFAULT_FRAG_SHADER)
 
       @program.bind_attrib(POSITION_ATTRIB, :position)
       @program.bind_attrib(TEXCOORD_ATTRIB, :texcoord)
