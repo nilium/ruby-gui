@@ -127,9 +127,15 @@ class Context
     end
   end
 
-  def enable_realtime
+  def enable_realtime(&block)
     @realtime += 1
-    self
+    if block
+      self
+    else
+      r = block[self]
+      disable_realtime
+      r
+    end
   end
 
   def disable_realtime
