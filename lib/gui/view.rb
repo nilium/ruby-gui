@@ -237,15 +237,33 @@ class View
     self
   end
 
+  #
+  # Invalidates layout on self and all subviews thereof. Any subview will have
+  # its perform_layout method called in turn.
+  #
   def request_layout
-    @needs_layout = true
+    if !@needs_layout
+      @needs_layout = true
+      subviews.each(&:request_layout)
+    end
   end
 
   def needs_layout?
     @needs_layout
   end
 
+  #
+  # For view subclasses or views with extended layout features, this should
+  # layout its subviews (ideally within the bounds of self, but this isn't
+  # required). By default, all it does is call its subviews' perform_layout
+  # functions.
+  #
+  # Implementations should either call their superclass's perform_layout to
+  # initiate layout of subviews or do so themselves.
+  #
   def perform_layout
+    @needs_layout = false
+    @subviews.each(&:perform_layout)
   end
 
   def view_with_tag(tag)
