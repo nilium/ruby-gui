@@ -162,8 +162,6 @@ class Window < View
     when :close_button
       event.stop_propagation!
       close if !event.cancelled?
-
-    else super
     end
   end
 
