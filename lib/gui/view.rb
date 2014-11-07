@@ -117,8 +117,16 @@ class View
     out
   end
 
-  def handle_event(event)
-  end
+  #
+  # Handles an event. By default, this is not implemented, as container views
+  # (i.e., basic View instances) do not require event handling and can save
+  # time by simply not responding to handle_event at all.
+  #
+  # If a view subclass does not require handle_event, do not implement it --
+  # it's faster than having an empty handle_event.
+  #
+  # def handle_event(event)
+  # end
 
   def window
     @window_cache ||= begin
