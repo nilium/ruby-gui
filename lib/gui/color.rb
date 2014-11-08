@@ -26,6 +26,8 @@ module GUI
 # Color is just a Vec4 with additions for setting/getting RGBA/HSVA.
 class Color < ::Snow::Vec4
 
+  ONE_OVER_SIX = 1.0 / 6.0
+
   alias_method :r, :x
   alias_method :r=, :x=
   alias_method :g, :y
@@ -81,7 +83,42 @@ class Color < ::Snow::Vec4
 
   # Assumes self's values are RGB.
   def to_hsv(out = nil)
+    out = clamped(out)
+    ir = out.r
+    ig = out.g
+    ib = out.b
 
+    lower = (ir < ig ? ir : ig)
+    lower = lower < ib ? lower : ib
+
+    upper = (ir > ig ? ir : ig)
+    upper = upper > ib ? upper : ib
+
+    chroma = upper - lower
+
+    if chroma < 0.0
+      out.x = 0.0
+      out.y = 0.0
+    else
+      if upper == ir
+        proposed = ((ig - ib) / chroma) * ONE_OVER_SIX
+        if proposed < 0.0
+          out.x = proposed + 1.0
+        else
+          out.x = proposed
+        end
+      elsif upper == ig
+        out.x = (2.0 + (ib - ir) / chroma) * ONE_OVER_SIX
+      else
+        out.x = (4.0 + (ir - ig) / chroma) * ONE_OVER_SIX
+      end
+
+      out.y = chroma / upper
+    end
+
+    out.z = upper
+
+    out
   end
 
   def clamped(out = nil)
