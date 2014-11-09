@@ -182,8 +182,13 @@ class Window < View
     super
   end
 
-  def draw(driver)
-  end
+  #
+  # By default, windows do not have a drawing routine. This may be altered as
+  # needed by subclasses, but same as View, they have no inherent visuals other
+  # than those provided by the OS window manager.
+  #
+  # def draw(driver)
+  # end
 
   def show
     __window__.show
@@ -263,7 +268,9 @@ class Window < View
 
           @driver.clear
 
-          self.draw(@driver)
+          if self.respond_to?(:draw)
+            self.draw(@driver)
+          end
           self.draw_subviews(@driver)
 
           @driver.draw_stages

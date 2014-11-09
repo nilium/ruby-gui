@@ -286,15 +286,30 @@ class View
     nil
   end
 
-  def draw(driver)
-  end
+  #
+  # Drawing routine for a view, given a graphics driver.
+  #
+  # Views, by default, do not implement this and as such calling this as a
+  # super method in subclasses has no effect. Views should only implement this
+  # if they intend to draw something, otherwise they should opt for not
+  # providing an implementation.
+  #
+  # Subclasses of views with drawing routines should call super as needed,
+  # though it may be advisable to check if it can be called and whether you
+  # want to call it in the first place (i.e., is it in addition to drawing or
+  # replacing all drawing?).
+  #
+  # def draw(driver)
+  # end
 
   def draw_subviews(driver)
     @subviews.each do |subview|
       driver.push_state do
         driver.origin += subview.frame.origin
         # push relevant state
-        subview.draw(driver)
+        if subview.respond_to?(:draw)
+          subview.draw(driver)
+        end
         subview.draw_subviews(driver)
         # pop relevant state
       end
