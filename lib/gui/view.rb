@@ -38,6 +38,8 @@ class View
   # Rectangular portion
   attr_accessor :frame # Rect
 
+  attr_accessor :hidden
+
   def initialize(frame = nil)
     @leaf_cache     = nil
     @needs_layout   = false
@@ -49,6 +51,7 @@ class View
     @frame          = frame || Rect.new
     @window_cache   = nil
     @rootview_cache = nil
+    @hidden         = false
 
     invalidate
     request_layout
@@ -274,6 +277,14 @@ class View
     @subviews.each(&:perform_layout)
   end
 
+  def hide
+    self.hidden = true
+  end
+
+  def show
+    self.hidden = false
+  end
+
   def view_with_tag(tag)
     if @tag == tag
       self
@@ -316,7 +327,7 @@ class View
   end
 
   def __draw__(driver)
-    return unless @invalidated
+    return unless @invalidated && !@hidden
 
     if respond_to? :draw
       draw(driver)

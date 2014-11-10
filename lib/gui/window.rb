@@ -190,15 +190,13 @@ class Window < View
   # def draw(driver)
   # end
 
-  def show
-    __window__.show
-    invalidate
-    self
-  end
-
-  def hide
-    __window__.hide
-    self
+  def hidden=(is_hidden)
+    if is_hidden
+      __window__.hide
+    else
+      __window__.show
+    end
+    super is_hidden
   end
 
   # May be overridden to change whether clicking the close button actually
@@ -239,7 +237,7 @@ class Window < View
   end
 
   def __swap_buffers__
-    return unless @invalidated
+    return unless !self.hidden && @invalidated
 
     window = __window__
     self.class.bind_context(window) do
@@ -258,7 +256,7 @@ class Window < View
 
   def __draw__(driver)
     region = @invalidated
-    if region && !region.empty?
+    if !self.hidden && region && !region.empty?
       GL.glEnable(GL::GL_BLEND)
       GL.glBlendFunc(GL::GL_SRC_ALPHA, GL::GL_ONE_MINUS_SRC_ALPHA)
       GL.glEnable(GL::GL_SCISSOR_TEST)
