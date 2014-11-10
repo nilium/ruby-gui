@@ -303,17 +303,27 @@ class View
   # end
 
   def draw_subviews(driver)
+    region = @invalidated
+    return unless region
     @subviews.each do |subview|
+      return unless region.intersects?(subview.frame)
+
       driver.push_state do
         driver.origin += subview.frame.origin
-        # push relevant state
-        if subview.respond_to?(:draw)
-          subview.draw(driver)
-        end
-        subview.draw_subviews(driver)
-        # pop relevant state
+        subview.__draw__(driver)
       end
     end
+  end
+
+  def __draw__(driver)
+    return unless @invalidated
+
+    if respond_to? :draw
+      draw(driver)
+    end
+    draw_subviews(driver)
+
+    @invalidated = nil
   end
 
   def [](selector)

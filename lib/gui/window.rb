@@ -248,40 +248,38 @@ class Window < View
         @driver.origin = Vec2[0.0, 0.0]
 
         __prepare_uniforms__(prog)
-
-        region = @invalidated
-        @invalidated = nil
-
-        if !region.empty?
-          GL.glEnable(GL::GL_BLEND)
-          GL.glBlendFunc(GL::GL_SRC_ALPHA, GL::GL_ONE_MINUS_SRC_ALPHA)
-          GL.glEnable(GL::GL_SCISSOR_TEST)
-          GL.glScissor(
-            region.x * scale_factor,
-            (@frame.height - region.bottom) * scale_factor,
-            region.width * scale_factor,
-            region.height * scale_factor
-            )
-
-          GL.glClearColor(*@background)
-          GL.glClear(GL::GL_COLOR_BUFFER_BIT)
-
-          @driver.clear
-
-          if self.respond_to?(:draw)
-            self.draw(@driver)
-          end
-          self.draw_subviews(@driver)
-
-          @driver.draw_stages
-
-          GL.glDisable(GL::GL_SCISSOR_TEST)
-        end # !region.empty?
+        __draw__(@driver)
 
       end # program.use
 
       window.swap_buffers
     end # bind_context(window)
+  end
+
+  def __draw__(driver)
+    region = @invalidated
+    if region && !region.empty?
+      GL.glEnable(GL::GL_BLEND)
+      GL.glBlendFunc(GL::GL_SRC_ALPHA, GL::GL_ONE_MINUS_SRC_ALPHA)
+      GL.glEnable(GL::GL_SCISSOR_TEST)
+      GL.glScissor(
+        region.x * scale_factor,
+        (@frame.height - region.bottom) * scale_factor,
+        region.width * scale_factor,
+        region.height * scale_factor
+        )
+
+      GL.glClearColor(*@background)
+      GL.glClear(GL::GL_COLOR_BUFFER_BIT)
+
+      driver.clear
+
+      super driver
+
+      driver.draw_stages
+
+      GL.glDisable(GL::GL_SCISSOR_TEST)
+    end # !region.empty?
   end
 
 end # Window
