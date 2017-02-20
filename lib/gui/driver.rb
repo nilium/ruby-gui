@@ -102,7 +102,7 @@ class Driver
       prev_state = __send__(e)
       h[e] =
         case prev_state
-        when Fixnum, Float then prev_state
+        when Integer, Float then prev_state
         else
           if prev_state.respond_to?(:dup)
             prev_state.dup
